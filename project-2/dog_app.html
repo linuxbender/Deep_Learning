@@ -13272,9 +13272,9 @@ cA3X8ERwzSyu4Rqu4YngmllcwzVcwxPBNbO4hmu4hieC/x83Yr05sT1SRwAAAABJRU5ErkJggg==
 <p><strong>Question 2:</strong> This algorithmic choice necessitates that we communicate to the user that we accept human images only when they provide a clear view of a face (otherwise, we risk having unneccessarily frustrated users!). In your opinion, is this a reasonable expectation to pose on the user? If not, can you think of a way to detect humans in images that does not necessitate an image with a clearly presented face?</p>
 <p><strong>Answer:</strong></p>
 <ul>
-<li>Head pictures in different angles</li>
-<li>3D head model</li>
-<li>Side picture of the ear and nose</li>
+<li>In my opinion for a basic solution is the clear view of a face a good solution. It depends on your use case.</li>
+<li>Disadvantage of this solution is the positive false case. Is it really a face or not? e.q If you only see a shadow or a picture of a face. In that case, it would not work properly.</li>
+<li>Improvement: Additional classifier who define a human face. e.q classifier for eyes, nose, ear. Can help to make a better prediction and avoid the positive false case.</li>
 </ul>
 <p>We suggest the face detector from OpenCV as a potential way to detect human images in your algorithm, but you are free to explore other approaches, especially approaches that make use of deep learning :).  Please use the code cell below to design and test your own face detection algorithm.  If you decide to pursue this <em>optional</em> task, report performance on each of the datasets.</p>
 
@@ -15520,6 +15520,7 @@ test_{network} = bottleneck_features['test']</code></pre>
 <li>the default architecture model returns top results out of the box</li>
 <li>using GlobalAveragePooling2D as GAP</li>
 <li>dense with softmax aktivation function</li>
+<li>the main reason for the successful prediction in ResNet50 is the model Architecture has more layers compared to others.</li>
 </ul>
 
 </div>

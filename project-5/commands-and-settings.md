@@ -4,19 +4,20 @@
 
 - go to
  ```
- cd catkin_ws/
+ $ cd catkin_ws/
  ```
 
 - catkin_make  # build command  
 ```
-source devel/setup.bash
-roslaunch quad_controller_rl rl_controller.launch
+$ source devel/setup.bash
+$ roslaunch quad_controller_rl rl_controller.launch
 ```
 
 ### Jupter Notebook
 - start jupyter notebook
 ```
-cd ~/catkin_ws/src/RL-Quadcopter/quad_controller_rl
+$ cd ~/catkin_ws/src/RL-Quadcopter/quad_controller_rl
+$ jupyter notebook
 ```
 
 - open jupyter notebook on the host (replace the ip)

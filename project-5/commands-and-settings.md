@@ -36,3 +36,8 @@ my current network settings simulator
 	"host-override" : true
 }
 ```
+
+### ROC run with DDPG Agent for the takeoff task
+```
+$ roslaunch quad_controller_rl rl_controller.launch agent:=DDPG
+```

@@ -24,8 +24,20 @@ class Memory:
     
     def sample(self, batch_size=64):
         """Randomly sample a batch of experiences from memory."""
-        return random.sample(self.memory, k=batch_size)
+        return random.sample(self.memory, batch_size)
 
     def __len__(self):
         """Return the current size of internal memory."""
         return len(self.memory)
+
+if __name__ == '__main__':
+    mem = Memory(10)
+    for i in range(15):  # more than maximum size to force overwriting
+        mem.add(i, i % 2, i % 3 - 1, i + 1, i % 4)
+    for i, e in enumerate(mem.memory):
+        print(i, e)  # should show circular overwriting
+    # Randomly sample a batch
+    batch = mem.sample(5)
+    print("Random batch: size = {}".format(len(batch)))  # maximum size if full
+    for e in batch:
+        print(e)

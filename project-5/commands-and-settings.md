@@ -40,4 +40,8 @@ my current network settings simulator
 ### ROC run with DDPG Agent for the takeoff task
 ```
 $ roslaunch quad_controller_rl rl_controller.launch agent:=DDPG
+$ roslaunch quad_controller_rl rl_controller.launch task:=Takeoff agent:=DDPG
+$ roslaunch quad_controller_rl rl_controller.launch task:=Hover agent:=DDPG
+$ roslaunch quad_controller_rl rl_controller.launch task:=Landing agent:=DDPG
+$ roslaunch quad_controller_rl rl_controller.launch task:=Combined agent:=DDPG
 ```

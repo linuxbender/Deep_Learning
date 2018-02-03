@@ -19,10 +19,11 @@ class Actor:
         self.action_low = action_low
         self.action_high = action_high
         self.action_range = self.action_high - self.action_low
+        self.learning_rate = 0.001
 
         # Initialize any other variables here
 
-        self.build_model()
+        self.build_model()        
 
     def build_model(self):
         """Build an actor (policy) network that maps states -> actions."""
@@ -41,8 +42,7 @@ class Actor:
             name='raw_actions')(net)
 
         # Scale [0, 1] output for each action dimension to proper range
-        actions = layers.Lambda(lambda x: (x * self.action_range) + self.action_low,
-            name='actions')(raw_actions)
+        actions = layers.Lambda(lambda x: (x * self.action_range) + self.action_low, name='actions')(raw_actions)                
 
         # Create Keras model
         self.model = models.Model(inputs=states, outputs=actions)
@@ -54,6 +54,7 @@ class Actor:
         # Incorporate any additional losses here (e.g. from regularizers)
 
         # Define optimizer and training function
+        # lr=self.learning_rate
         optimizer = optimizers.Adam()
         updates_op = optimizer.get_updates(params=self.model.trainable_weights, loss=loss)
         self.train_fn = K.function(

@@ -10,7 +10,7 @@ class Takeoff(BaseTask):
 
     def __init__(self):
         # State space: <position_x, .._y, .._z, orientation_x, .._y, .._z, .._w>
-        cube_size = 300.0  # env is cube_size x cube_size x cube_size
+        cube_size = 16.0  # env is cube_size x cube_size x cube_size
         self.observation_space = spaces.Box(
             np.array([- cube_size / 2, - cube_size / 2,       0.0, -1.0, -1.0, -1.0, -1.0]),
             np.array([  cube_size / 2,   cube_size / 2, cube_size,  1.0,  1.0,  1.0,  1.0]))
@@ -21,7 +21,7 @@ class Takeoff(BaseTask):
         max_torque = 25.0
         self.action_space = spaces.Box(
             np.array([-max_force, -max_force, -max_force, -max_torque, -max_torque, -max_torque]),
-            np.array([ max_force,  max_force,  max_force,  max_torque,  max_torque,  max_torque]))
+            np.array([ max_force,  max_force,  max_force,  max_torque, max_torque, max_torque]))
         #print("Takeoff(): action_space = {}".format(self.action_space))  # [debug]
 
         # Task-specific parameters
@@ -50,6 +50,8 @@ class Takeoff(BaseTask):
         if pose.position.z >= self.target_z:  # agent has crossed the target height
             reward += 10.0  # bonus reward
             done = True
+        if pose.position.z > 0 and timestamp < self.max_duration:
+            reward += (self.target_z / 100 ) * pose.position.z
         elif timestamp > self.max_duration:  # agent has run out of time
             reward -= 10.0  # extra penalty
             done = True

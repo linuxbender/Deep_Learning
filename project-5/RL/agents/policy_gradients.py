@@ -13,7 +13,7 @@ from quad_controller_rl.agents.critic import Critic
 from quad_controller_rl.agents.memory import Memory
 from quad_controller_rl.agents.ou_noise import OUNoise
 
-class DDPG(BaseAgent):    
+class DDPG(BaseAgent):   
     def __init__(self, task):
         # debugger
         # import pdb; pdb.set_trace()
@@ -28,11 +28,6 @@ class DDPG(BaseAgent):
         # Actor (Policy) Model
         self.action_low =  self.task.action_space.low[0:3] # force 
         self.action_high = self.task.action_space.high[0:3] # force
-        
-        # Score tracker and learning parameters
-        self.best_w = None
-        self.best_score = -np.inf
-        self.noise_scale = 0.6 
 
         # Save episode stats
         self.stats_filename = os.path.join(util.get_param('out'),"stats_{}.csv".format(util.get_timestamp()))
@@ -59,12 +54,12 @@ class DDPG(BaseAgent):
         self.memory = Memory(self.buffer_size)
 
         # Algorithm parameters
-        self.gamma = 0.95  # discount factor
+        self.gamma = 0.99  # discount factor
         self.tau = 0.001  # for soft update of target parameters
 
         # Episode variables
         self.reset_episode_vars()
-        signal.signal(signal.SIGINT, self.save_models_on_exit)
+        # signal.signal(signal.SIGINT, self.save_models_on_exit)
 
     def reset_episode_vars(self):
         # debugger
@@ -72,16 +67,14 @@ class DDPG(BaseAgent):
 
         self.last_state = None
         self.last_action = None
-        self.total_reward = 0.0
-        self.count = 0
+        self.total_reward = 0.0        
 
     def step(self, state, reward, done):
         # debugger
-        # import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()        
 
         state = self.preprocess_state(state)        
 
-        # Choose an action        
         action = self.act(state)
         
         if self.last_state is not None and self.last_action is not None:
@@ -91,10 +84,9 @@ class DDPG(BaseAgent):
             experiences = self.memory.sample(self.batch_size)
             self.learn(self.memory.sample(self.batch_size))
 
-        self.total_reward += reward
-        self.count += 1
-        self.last_state = state
+        self.last_state = state        
         self.last_action = action
+        self.total_reward += reward
 
         if done:
             self.episode_num += 1
@@ -105,7 +97,7 @@ class DDPG(BaseAgent):
 
     def act(self, states):
         # debugger
-        # import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()        
 
         states = np.reshape(states, [-1, self.state_size])
         actions = self.actor_local.model.predict(states)
@@ -113,7 +105,7 @@ class DDPG(BaseAgent):
 
     def learn(self, experiences):
         # debugger
-        # import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()        
         
         states = np.vstack([e.state for e in experiences if e is not None])
         actions = np.array([e.action for e in experiences if e is not None]).astype(np.float32).reshape(-1, self.action_size)
@@ -145,7 +137,7 @@ class DDPG(BaseAgent):
         local_weights = np.array(local_model.get_weights())
         target_weights = np.array(target_model.get_weights())
 
-        new_weights = self.tau * local_weights + (1 - self.tau) * target_weights
+        new_weights = self.tau * local_weights + (1 - self.tau) * target_weights        
         target_model.set_weights(new_weights)
 
     def preprocess_state(self, state):
@@ -159,7 +151,7 @@ class DDPG(BaseAgent):
         # import pdb; pdb.set_trace()
 
         complete_action = np.zeros(self.task.action_space.shape)
-        complete_action[0:3] = action  # linear force only
+        complete_action[0:3] = action        
         return complete_action
 
     def write_stats(self, stats):

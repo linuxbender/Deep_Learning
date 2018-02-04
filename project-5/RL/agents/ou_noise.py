@@ -1,26 +1,26 @@
 # Based on:
 # https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py
+# https://arxiv.org/pdf/1509.02971.pdf
 
 import numpy as np
 
 class OUNoise:
-    """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, action_dimension, mu=None, theta=1.5, sigma=4):
-        """Initialize parameters and noise process."""
+    def __init__(self, action_dimension, mu=None, theta=0.15, sigma=0.2):        
         self.action_dimension = action_dimension
         self.mu = mu if mu is not None else np.zeros(self.action_dimension)
         self.theta = theta
         self.sigma = sigma
-        self.state = np.ones(self.action_dimension) * self.mu
+        self.state = np.ones(self.action_dimension) * self.mu*2
         self.reset()
 
     def reset(self):
-        """Reset the internal state (= noise) to mean (mu)."""        
         self.state = self.mu
 
     def sample(self):
-        """Update internal state and return it as a noise sample."""
+        # debugger
+        # import pdb; pdb.set_trace()
+
         x = self.state
         dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(len(x))
         self.state = x + dx

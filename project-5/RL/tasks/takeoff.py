@@ -5,7 +5,7 @@ from quad_controller_rl.tasks.base_task import BaseTask
 
 class Takeoff(BaseTask):
     def __init__(self):        
-        cube_size = 16.0
+        cube_size = 300.0
         self.observation_space = spaces.Box(
             np.array([- cube_size / 2, - cube_size / 2,       0.0, -1.0, -1.0, -1.0, -1.0]),
             np.array([  cube_size / 2,   cube_size / 2, cube_size,  1.0,  1.0,  1.0,  1.0]))
@@ -39,8 +39,9 @@ class Takeoff(BaseTask):
         if pose.position.z >= self.target_z:
             reward += 10.0
             done = True
-        elif pose.position.z > 0 and timestamp < self.max_duration:
-            reward += (self.target_z / 100 ) * pose.position.z
+        elif pose.position.z > 0 and pose.position.z < self.target_z and timestamp < self.max_duration:
+            reward += (self.target_z / 100) * pose.position.z
+            timestamp -= 1.5
         elif timestamp > self.max_duration:
             reward -= 10.0
             done = True

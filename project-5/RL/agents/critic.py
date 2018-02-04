@@ -27,25 +27,27 @@ class Critic:
         actions = layers.Input(shape=(self.action_size,), name='actions')
 
         # Add hidden layer(s) for state pathway
-        net_states = layers.Dense(units=128, activation=None)(states)        
-        net_states = layers.Activation('relu')(net_states)
+        net_states = layers.Dense(units=128, activation=None)(states)
+        net_states = layers.BatchNormalization()(net_states)
+        net_states = layers.LeakyReLU(alpha=0.3)(net_states)
         net_states = layers.Dense(units=128, activation=None)(net_states)
-        net_states = layers.Dropout(0.01)(net_states)        
-        net_states = layers.Activation('relu')(net_states)        
+        net_states = layers.BatchNormalization()(net_states)
+        net_states = layers.LeakyReLU(alpha=0.3)(net_states)
 
         # Add hidden layer(s) for action pathway
-        net_actions = layers.Dense(units=128, activation=None)(actions)        
-        net_actions = layers.Activation('relu')(net_actions)
+        net_actions = layers.Dense(units=128, activation=None)(actions)
+        net_actions = layers.BatchNormalization()(net_actions)        
+        net_actions = layers.LeakyReLU(alpha=0.3)(net_actions)
         net_actions = layers.Dense(units=128, activation=None)(net_actions)
-        net_states = layers.Dropout(0.01)(net_states)
-        net_actions = layers.Activation('relu')(net_actions)
+        net_actions = layers.BatchNormalization()(net_actions)        
+        net_actions = layers.LeakyReLU(alpha=0.3)(net_actions)
 
         # Combine state and action pathways
         net = layers.Add()([net_states, net_actions])
-        net = layers.Activation('relu')(net)
+        net = layers.LeakyReLU(alpha=0.2)(net)
         net = layers.Dense(units=128, activation=None)(net)        
         net = layers.BatchNormalization()(net)
-        net = layers.Activation('relu')(net)
+        net = layers.Activation('sigmoid')(net)
 
         # Add final output layer to prduce action values (Q values)
         Q_values = layers.Dense(units=1, name='q_values')(net)
@@ -55,8 +57,7 @@ class Critic:
 
         # Define optimizer and compile model for training with built-in loss function        
         optimizer = optimizers.Adam(lr=self.learning_rate)
-        self.model.compile(optimizer=optimizer, loss='mse')
-        self.model.summary()
+        self.model.compile(optimizer=optimizer, loss='mse')        
 
         # Compute action gradients (derivative of Q values w.r.t. to actions)
         action_gradients = K.gradients(Q_values, actions)

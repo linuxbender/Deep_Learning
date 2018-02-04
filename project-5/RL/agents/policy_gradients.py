@@ -73,26 +73,25 @@ class DDPG(BaseAgent):
         # debugger
         # import pdb; pdb.set_trace()        
 
-        state = self.preprocess_state(state)        
+        state = self.preprocess_state(state)
 
         action = self.act(state)
         
         if self.last_state is not None and self.last_action is not None:
+            self.total_reward += reward
             self.memory.add(self.last_state, self.last_action, reward, state, done)
 
         if len(self.memory) > self.batch_size:
             experiences = self.memory.sample(self.batch_size)
             self.learn(self.memory.sample(self.batch_size))
 
-        self.last_state = state        
-        self.last_action = action
-        self.total_reward += reward
-
         if done:
             self.episode_num += 1
             self.write_stats([self.episode_num, self.total_reward])
-            self.reset_episode_vars()            
-        
+            self.reset_episode_vars()
+
+        self.last_state = state
+        self.last_action = action
         return self.postprocess_action(action)
 
     def act(self, states):

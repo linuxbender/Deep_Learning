@@ -18,28 +18,31 @@ class DDPG(BaseAgent):
         # debugger
         # import pdb; pdb.set_trace()
 
+        LEARNING_RATE = 0.001
+        BUFFER_SIZE = 100000
+
         # Task (environment) information
         self.task = task
         
         # constrain size
-        self.state_size = 3 # np.prod(self.task.observation_space.shape) # position only (x,y,z),  self.task.observation_space.__dict__
+        self.state_size = np.prod(self.task.observation_space.shape) # position only (x,y,z),  self.task.observation_space.__dict__
         self.action_size = 3 # np.prod(self.task.action_space.shape) # force only (x,y,z), self.task.action_space.shape.__dict__
 
         # Actor (Policy) Model
-        self.action_low =  self.task.action_space.low[0:3] # force 
-        self.action_high = self.task.action_space.high[0:3] # force
+        self.action_low =  self.task.action_space.low # force 
+        self.action_high = self.task.action_space.high # force
 
         # Save episode stats
         self.stats_filename = os.path.join(util.get_param('out'),"stats_{}.csv".format(util.get_timestamp()))
         self.stats_columns = ['episode', 'total_reward']  # specify columns to save
-        self.episode_num = 1        
+        self.episode_num = 1      
 
-        self.actor_local = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
-        self.actor_target = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
+        self.actor_local = Actor(self.state_size, self.action_size, self.action_low, self.action_high, LEARNING_RATE)
+        self.actor_target = Actor(self.state_size, self.action_size, self.action_low, self.action_high, LEARNING_RATE)
 
         # Critic (Value) Model
-        self.critic_local = Critic(self.state_size, self.action_size)
-        self.critic_target = Critic(self.state_size, self.action_size)
+        self.critic_local = Critic(self.state_size, self.action_size, LEARNING_RATE)
+        self.critic_target = Critic(self.state_size, self.action_size, LEARNING_RATE)
 
         # Initialize target model parameters with local model parameters
         self.critic_target.model.set_weights(self.critic_local.model.get_weights())
@@ -48,10 +51,9 @@ class DDPG(BaseAgent):
         # Noise process
         self.noise = OUNoise(self.action_size)
 
-        # Replay memory
-        self.buffer_size = 100000
+        # Replay memory        
         self.batch_size = 64
-        self.memory = Memory(self.buffer_size)
+        self.memory = Memory(BUFFER_SIZE)
 
         # Algorithm parameters
         self.gamma = 0.99  # discount factor
@@ -73,7 +75,7 @@ class DDPG(BaseAgent):
         # debugger
         # import pdb; pdb.set_trace()        
 
-        state = self.preprocess_state(state)
+        #state = self.preprocess_state(state)
 
         action = self.act(state)
         
@@ -92,7 +94,8 @@ class DDPG(BaseAgent):
 
         self.last_state = state
         self.last_action = action
-        return self.postprocess_action(action)
+        return action
+        #return self.postprocess_action(action)
 
     def act(self, states):
         # debugger

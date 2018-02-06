@@ -21,10 +21,11 @@ class Takeoff(BaseTask):
 
         self.max_duration = 5.0
         self.target_z = 10.0
+        self.threshold = 0.2
 
     def reset(self):
         return Pose(
-                position=Point(0.0, 0.0, np.random.normal(0.5, 0.1)),
+                position=Point(0.0, 0.0, 0.0),
                 orientation=Quaternion(0.0, 0.0, 0.0, 0.0),
             ), Twist(
                 linear=Vector3(0.0, 0.0, 0.0),
@@ -47,6 +48,15 @@ class Takeoff(BaseTask):
         reward = -min(abs(self.target_z - pose.position.z), 20.0)
         if pose.position.z >= self.target_z:
             reward += 10.0
+            done = True
+        if not -self.threshold < pose.position.x < self.threshold:
+            reward -= 10.0
+            done = True
+        if not -self.threshold < pose.position.y < self.threshold:
+            reward -= 10.0
+            done = True
+        if timestamp < self.max_duration and pose.position.z > self.target_z:
+            reward -= 10.0
             done = True
         elif timestamp > self.max_duration:
             reward -= 10.0

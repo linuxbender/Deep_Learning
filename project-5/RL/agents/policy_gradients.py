@@ -78,8 +78,8 @@ class DDPG(BaseAgent):
         # import pdb; pdb.set_trace()        
 
         #state = self.preprocess_state(state)
-        state = (state - self.task.observation_space.low) / self.state_range  # scale to [0.0, 1.0]
-        state = state.reshape(1, -1)  # convert to row vector
+        #state = (state - self.task.observation_space.low) / self.state_range  # scale to [0.0, 1.0]
+        #state = state.reshape(1, -1)  # convert to row vector
 
         action = self.act(state)
         

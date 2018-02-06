@@ -23,10 +23,11 @@ class Critic:
 
         net_actions = layers.Dense(units=300, activation=None)(actions)
         net_actions = layers.BatchNormalization()(net_actions)
-        net_actions = layers.Activation('relu')(net_actions)
+        net_actions = layers.Activation('relu')(net_actions)        
+
         net_actions = layers.Dense(units=600, activation=None)(net_actions)
         net_actions = layers.BatchNormalization()(net_actions)
-        net_actions = layers.Activation('relu')(net_actions)
+        net_actions = layers.Activation('relu')(net_actions)        
 
         net = layers.Add()([net_states, net_actions])
         net = layers.Activation('sigmoid')(net)

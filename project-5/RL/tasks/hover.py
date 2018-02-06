@@ -21,10 +21,7 @@ class Hover(BaseTask):
 
         self.max_duration = 5.0
         self.target_z = 10.0
-        self.target_max_z = 11
-        self.target_min_z = 9
-        self.reward_threshold_size = 20
-
+        self.threshold = 0.2
 
     def reset(self):
         return Pose(
@@ -48,20 +45,29 @@ class Hover(BaseTask):
                 pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
         
         done = False
-        reward = -min(abs(self.target_z - pose.position.z), 20.0)
-        if pose.position.z <= self.target_max_z and pose.position.z >= self.target_min_z:
+        reward = -min(abs(self.target_z+self.threshold*2 - pose.position.z), 20.0)
+        # new z rig
+        if pose.position.z >= self.target_z+self.threshold:
             reward += 10.0
             done = True
-        if pose.position.z > self.target_max_z:
-            reward -= 10.0
-            done = True
-        if pose.position.z <= 4:
+        if pose.position.z > self.target_z+self.threshold*2:
             reward -= 10.0
             done = True        
-        elif timestamp > self.max_duration:
+        if pose.position.z <= 0.0:
             reward -= 10.0
             done = True
-        
+
+        # x,y rig from takeoff task       
+        if not -self.threshold < pose.position.x < self.threshold:
+            reward -= 10.0
+            done = True
+        if not -self.threshold < pose.position.y < self.threshold:
+            reward -= 10.0
+            done = True       
+        if timestamp > self.max_duration:
+            reward -= 10.0
+            done = True
+
         action = self.agent.step(state, reward, done)        
 
         if action is not None:
@@ -72,3 +78,19 @@ class Hover(BaseTask):
         else:
             print("Empty Wrench no action...")
             return Wrench(), done
+
+    # todo: after project, clean up
+    def hoverPositionReward(self, position):
+        done = False
+        reward = 0.0
+        threshold = 0.2  
+        if threshold <= position <= threshold*2:
+            reward += 10.0
+            done = True
+        if -threshold >= position >= -threshold*2:
+            reward += 10.0
+            done = True
+        if not-threshold*2 <= position <= threshold*2:
+            reward -= 10.0
+            done = True
+        return reward, done

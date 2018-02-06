@@ -6,19 +6,19 @@ from quad_controller_rl.tasks.base_task import BaseTask
 class Combined(BaseTask):
 
     def __init__(self):
-        cube_size = 16.0
+        cube_size = 300.0
         self.observation_space = spaces.Box(
-            np.array([- cube_size / 2, - cube_size / 2,       0.0, -1.0, -1.0, -1.0, -1.0]),
-            np.array([  cube_size / 2,   cube_size / 2, cube_size,  1.0,  1.0,  1.0,  1.0]))
+            np.array([- cube_size / 2, - cube_size / 2, 0.0, -1.0, -1.0, -1.0, -1.0]),
+            np.array([ cube_size / 2, cube_size / 2, cube_size,  1.0,  1.0,  1.0,  1.0]))
 
         max_force = 25.0
         max_torque = 25.0
         self.action_space = spaces.Box(
-            np.array([-max_force, -max_force, -max_force, -max_torque, -max_torque, -max_torque]),
-            np.array([ max_force,  max_force,  max_force,  max_torque, max_torque, max_torque]))
+            np.array([-max_force, -max_force, -max_force]),
+            np.array([ max_force,  max_force,  max_force]))
         
         self.max_duration = 5.0
-        self.target_z = 10.0        
+        self.target_z = 10.0
 
     def reset(self):  
         return Pose(
@@ -45,7 +45,7 @@ class Combined(BaseTask):
 
     def hover(self, timestamp, pose, reward ):
         if pose.position.z == self.target_z:
-            reward += 10.0       
+            reward += 10.0
             timestamp = 0
             # 3 task
             self.landing(self, timestamp, pose, reward )

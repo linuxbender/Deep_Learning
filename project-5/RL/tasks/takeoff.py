@@ -11,13 +11,13 @@ class Takeoff(BaseTask):
         cube_size = 300.0
         self.observation_space = spaces.Box(
             np.array([- cube_size / 2.0, - cube_size / 2.0, 0.0, -1.0, -1.0, -1.0, -1.0]),
-            np.array([  cube_size / 2.0, cube_size / 2.0, cube_size,  1.0,  1.0,  1.0,  1.0]))
+            np.array([ cube_size / 2.0, cube_size / 2.0, cube_size,  1.0,  1.0,  1.0, 1.0]))
 
         max_force = 25.0
 
         self.action_space = spaces.Box(
             np.array([-max_force, -max_force, -max_force]),
-            np.array([ max_force,  max_force,  max_force]))
+            np.array([ max_force, max_force, max_force]))
 
         self.max_duration = 5.0
         self.target_z = 10.0
@@ -52,7 +52,7 @@ class Takeoff(BaseTask):
             reward -= 10.0
             done = True
         
-        action = self.agent.step(state, reward, done)        
+        action = self.agent.step(state, reward, done)
 
         if action is not None:
             action = np.clip(action.flatten(), self.action_space.low, self.action_space.high)

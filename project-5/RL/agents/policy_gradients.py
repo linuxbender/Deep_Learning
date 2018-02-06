@@ -59,6 +59,8 @@ class DDPG(BaseAgent):
         self.gamma = 0.99  # discount factor
         self.tau = 0.001  # for soft update of target parameters
 
+        self.state_range = self.task.observation_space.high - self.task.observation_space.low
+
         # Episode variables
         self.reset_episode_vars()
         # signal.signal(signal.SIGINT, self.save_models_on_exit)
@@ -76,6 +78,8 @@ class DDPG(BaseAgent):
         # import pdb; pdb.set_trace()        
 
         #state = self.preprocess_state(state)
+        state = (state - self.task.observation_space.low) / self.state_range  # scale to [0.0, 1.0]
+        state = state.reshape(1, -1)  # convert to row vector
 
         action = self.act(state)
         

@@ -21,11 +21,11 @@ class Hover(BaseTask):
 
         self.max_duration = 5.0
         self.target_z = 10.0
-        self.threshold = 0.2
+        self.threshold = 1
 
     def reset(self):
         return Pose(
-                position=Point(0.0, 0.0, 8.0),
+                position=Point(0.0, 0.0, 0.0),
                 orientation=Quaternion(0.0, 0.0, 0.0, 0.0),
             ), Twist(
                 linear=Vector3(0.0, 0.0, 0.0),
@@ -36,43 +36,40 @@ class Hover(BaseTask):
         # debugger
         # import pdb; pdb.set_trace()
 
-        # linear_acceleration.z = abs(linear_acceleration.z) + 6
-        # angular_velocity.z += abs(linear_acceleration.z) + 6
-        # pose.position.z += abs(linear_acceleration.z) + 11
+        # linear_acceleration.z
+        # angular_velocity.z
+        # pose.position.z
 
-        state = np.array([
-                pose.position.x, pose.position.y, pose.position.z,
-                pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
-        
+        # pos = state[0,:3]
+        # vel = state[0,3:6]
+        # av = state[0,6:9]        
+
+        state = np.array([pose.position.x, pose.position.y, pose.position.z])                
         done = False
-        reward = -min(abs(self.target_z+self.threshold*2 - pose.position.z), 20.0)
-        # new z rig
-        if pose.position.z >= self.target_z+self.threshold:
-            reward += 10.0
-            done = True
-        if pose.position.z > self.target_z+self.threshold*2:
+        reward = -min(abs(self.target_z - pose.position.z), 20.0)
+        if pose.position.z > self.target_z + self.threshold and timestamp < self.max_duration:
+            timestamp += 2.5
             reward -= 10.0
             done = True        
-        if pose.position.z <= 0.0:
-            reward -= 10.0
+        if -self.threshold+self.target_z < pose.position.z < self.threshold+self.target_z:
+            timestamp -= 2.5
+            reward += 10.0
             done = True
-
-        # x,y rig from takeoff task       
         if not -self.threshold < pose.position.x < self.threshold:
             reward -= 10.0
             done = True
         if not -self.threshold < pose.position.y < self.threshold:
             reward -= 10.0
-            done = True       
-        if timestamp > self.max_duration:
+            done = True        
+        elif timestamp > self.max_duration:
             reward -= 10.0
             done = True
-
+        
         action = self.agent.step(state, reward, done)        
 
-        if action is not None:
+        if action is not None:            
             action = np.clip(action.flatten(), self.action_space.low, self.action_space.high)
-            # print("Action: {}, {}, {} ".format(action[0], action[1], action[2]))
+            #print("Action: {}, {}, {} ".format(action[0], action[1], action[2]))
             # z-position, z-linear acceleration, and a calculated per-timestep z-velocity
             return Wrench(force=Vector3(action[0], action[1], action[2])), done
         else:

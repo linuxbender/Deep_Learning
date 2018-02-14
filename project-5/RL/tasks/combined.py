@@ -4,23 +4,27 @@ from geometry_msgs.msg import Vector3, Point, Quaternion, Pose, Twist, Wrench
 from quad_controller_rl.tasks.base_task import BaseTask
 
 class Combined(BaseTask):
-
     def __init__(self):
+        # debugger
+        # import pdb; pdb.set_trace()
+
         cube_size = 300.0
         self.observation_space = spaces.Box(
-            np.array([- cube_size / 2, - cube_size / 2, 0.0, -1.0, -1.0, -1.0, -1.0]),
-            np.array([ cube_size / 2, cube_size / 2, cube_size,  1.0,  1.0,  1.0,  1.0]))
+            np.array([- cube_size / 2.0, - cube_size / 2.0, 0.0, -1.0, -1.0, -1.0, -1.0]),
+            np.array([  cube_size / 2.0, cube_size / 2.0, cube_size,  1.0,  1.0,  1.0,  1.0]))
 
         max_force = 25.0
-        max_torque = 25.0
+
         self.action_space = spaces.Box(
             np.array([-max_force, -max_force, -max_force]),
-            np.array([ max_force,  max_force,  max_force]))
-        
-        self.max_duration = 5.0
-        self.target_z = 10.0
+            np.array([ max_force, max_force, max_force]))
 
-    def reset(self):  
+        self.max_duration = 5.0
+        self.target_top_z = 10.0
+        self.target_down_z = 1.0
+        self.threshold = 1
+
+    def reset(self):
         return Pose(
                 position=Point(0.0, 0.0, np.random.normal(0.5, 0.1)),
                 orientation=Quaternion(0.0, 0.0, 0.0, 0.0),
@@ -29,67 +33,53 @@ class Combined(BaseTask):
                 angular=Vector3(0.0, 0.0, 0.0)
             )
 
-    def takeoff(self, timestamp, pose, reward ):
-        if pose.position.z >= self.target_z:
-            reward += 10.0
-            timestamp = 0
-            # 2 task
-            self.hover(self, timestamp, pose, reward )
-        elif pose.position.z > 0 and pose.position.z < self.target_z  and timestamp < self.max_duration:
-            reward += (self.target_z / 100 ) * pose.position.z
-            timestamp -= 1.5
-        elif timestamp > self.max_duration:
-            reward -= 10.0
-            done = True
-
-
-    def hover(self, timestamp, pose, reward ):
-        if pose.position.z == self.target_z:
-            reward += 10.0
-            timestamp = 0
-            # 3 task
-            self.landing(self, timestamp, pose, reward )
-        elif pose.position.z >= (self.target_z - 0.5) and timestamp < self.max_duration:
-            reward += 5
-        elif pose.position.z <= (self.target_z + 0.5) and timestamp < self.max_duration:
-            reward += 5
-        elif timestamp > self.max_duration:
-            reward -= 10.0
-            done = True
-
-
-    def landing(self, timestamp, pose, reward ):
-        if pose.position.z == 0:
-            reward += 10.0
-            done = True
-        elif pose.position.z < self.target_z and timestamp < self.max_duration:
-            reward += (self.target_z - pose.position.z / 100)
-        elif timestamp > self.max_duration:
-            reward -= 10.0
-            done = True
-
-
     def update(self, timestamp, pose, angular_velocity, linear_acceleration):
         # debugger
         # import pdb; pdb.set_trace()
 
-        state = np.array([
-                pose.position.x, pose.position.y, pose.position.z,
-                pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
-        
+        # linear_acceleration.z
+        # angular_velocity.z
+        # pose.position.z
+
+        # pos = state[0,:3]
+        # vel = state[0,3:6]
+        # av = state[0,6:9]        
+
+        state = np.array([pose.position.x, pose.position.y, pose.position.z])
         done = False
-        reward = -min(abs(self.target_z - pose.position.z), 20.0)
-
-        # 1 task
-        self.takeoff(timestamp, pose , reward)
-
-        action = self.agent.step(state, reward, done)
+        reward = -min(abs(self.target_top_z - pose.position.z), 20.0)
+        # Takeoff        
+        if -self.threshold+self.target_top_z < pose.position.z < self.threshold+self.target_top_z:
+            reward += 10
+            print("Takeoff")
+            # Hover
+            if (self.max_duration - timestamp) <= 2.0:
+                reward += 10.0
+                timestamp = 0 # reset time
+                print("Hover")
+                # Landing
+                if -self.threshold+self.target_down_z < pose.position.z < self.threshold+self.target_down_z:
+                    if (self.max_duration - timestamp) <= 2.0:
+                        reward += 500.0
+                        done = True
+                        print("Landing")
+        if not -self.threshold < pose.position.x < self.threshold:
+            reward -= 10.0
+            done = True
+        if not -self.threshold < pose.position.y < self.threshold:
+            reward -= 10.0
+            done = True
+        elif timestamp > self.max_duration:
+            reward -= 200.0
+            done = True
         
-        if action is not None:
-            action = np.clip(action.flatten(), self.action_space.low, self.action_space.high)  # flatten, clamp to action space limits
-            return Wrench(
-                    force=Vector3(action[0], action[1], action[2]),
-                    torque=Vector3(action[3], action[4], action[5])
-                ), done
+        action = self.agent.step(state, reward, done)
+
+        if action is not None:            
+            action = np.clip(action.flatten(), self.action_space.low, self.action_space.high)
+            #print("Action: {}, {}, {} ".format(action[0], action[1], action[2]))
+            # z-position, z-linear acceleration, and a calculated per-timestep z-velocity
+            return Wrench(force=Vector3(action[0], action[1], action[2])), done
         else:
+            print("Empty Wrench no action...")
             return Wrench(), done

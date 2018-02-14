@@ -25,12 +25,12 @@ class DDPG(BaseAgent):
         self.task = task
         
         # constrain size
-        self.state_size = np.prod(self.task.observation_space.shape) # position only (x,y,z),  self.task.observation_space.__dict__
-        self.action_size = 3 # np.prod(self.task.action_space.shape) # force only (x,y,z), self.task.action_space.shape.__dict__
+        self.state_size =  1 #np.prod(self.task.observation_space.shape) # position only (x,y,z),  self.task.observation_space.__dict__
+        self.action_size = 1 #np.prod(self.task.action_space.shape) # force only (x,y,z), self.task.action_space.shape.__dict__
 
         # Actor (Policy) Model
-        self.action_low =  self.task.action_space.low # force 
-        self.action_high = self.task.action_space.high # force
+        self.action_low =  self.task.action_space.low[2:3] # force 
+        self.action_high = self.task.action_space.high[2:3] # force
 
         # Save episode stats
         self.stats_filename = os.path.join(util.get_param('out'),"stats_{}.csv".format(util.get_timestamp()))
@@ -75,12 +75,12 @@ class DDPG(BaseAgent):
 
     def step(self, state, reward, done):
         # debugger
-        # import pdb; pdb.set_trace()        
+        # import pdb; pdb.set_trace() 
 
-        #state = self.preprocess_state(state)
+        state = self.preprocess_state(state)
         #state = (state - self.task.observation_space.low) / self.state_range  # scale to [0.0, 1.0]
         #state = state.reshape(1, -1)  # convert to row vector
-
+        
         action = self.act(state)
         
         if self.last_state is not None and self.last_action is not None:
@@ -98,20 +98,21 @@ class DDPG(BaseAgent):
 
         self.last_state = state
         self.last_action = action
-        return action
-        #return self.postprocess_action(action)
+        #return action
+        return self.postprocess_action(action)
 
     def act(self, states):
         # debugger
-        # import pdb; pdb.set_trace()        
+        # import pdb; pdb.set_trace()
 
         states = np.reshape(states, [-1, self.state_size])
         actions = self.actor_local.model.predict(states)
+        #print('Actions are:  {}'.format(actions))
         return actions + self.noise.sample()  # add some noise for exploration
 
     def learn(self, experiences):
         # debugger
-        # import pdb; pdb.set_trace()        
+        # import pdb; pdb.set_trace()
         
         states = np.vstack([e.state for e in experiences if e is not None])
         actions = np.array([e.action for e in experiences if e is not None]).astype(np.float32).reshape(-1, self.action_size)
@@ -150,14 +151,14 @@ class DDPG(BaseAgent):
         # debugger
         # import pdb; pdb.set_trace()
         
-        return state[0:3]  # position only
+        return state[2:3]  # position only
 
     def postprocess_action(self, action):
         # debugger
         # import pdb; pdb.set_trace()
 
         complete_action = np.zeros(self.task.action_space.shape)
-        complete_action[0:3] = action        
+        complete_action[2:3] = action
         return complete_action
 
     def write_stats(self, stats):

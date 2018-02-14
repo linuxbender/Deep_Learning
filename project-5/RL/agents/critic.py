@@ -14,18 +14,18 @@ class Critic:
         states = layers.Input(shape=(self.state_size,), name='states')
         actions = layers.Input(shape=(self.action_size,), name='actions')
 
-        net_states = layers.Dense(units=300, activation=None)(states)
+        net_states = layers.Dense(units=128, activation=None)(states)
         net_states = layers.BatchNormalization()(net_states)
         net_states = layers.Activation('relu')(net_states)
-        net_states = layers.Dense(units=600, activation=None)(net_states)
+        net_states = layers.Dense(units=128, activation=None)(net_states)
         net_states = layers.BatchNormalization()(net_states)
         net_states = layers.Activation('relu')(net_states)
 
-        net_actions = layers.Dense(units=300, activation=None)(actions)
+        net_actions = layers.Dense(units=128, activation=None)(actions)
         net_actions = layers.BatchNormalization()(net_actions)
         net_actions = layers.Activation('relu')(net_actions)        
 
-        net_actions = layers.Dense(units=600, activation=None)(net_actions)
+        net_actions = layers.Dense(units=128, activation=None)(net_actions)
         net_actions = layers.BatchNormalization()(net_actions)
         net_actions = layers.Activation('relu')(net_actions)        
 

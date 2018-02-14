@@ -11,9 +11,9 @@ class Actor:
 
         self.state_size = state_size
         self.action_size = action_size
-        self.action_low = action_low
-        self.action_high = action_high
-        self.action_range = action_high - self.action_low
+        self.action_low = action_low        
+        self.action_high = action_high        
+        self.action_range = self.action_high - self.action_low        
         self.LEARNING_RATE = LEARNING_RATE
 
         self.build_model()
@@ -23,11 +23,14 @@ class Actor:
         # import pdb; pdb.set_trace()
         
         states = layers.Input(shape=(self.state_size,), name='states')
-        net = layers.Dense(units=300, activation=None)(states)
+        net = layers.Dense(units=128, activation=None)(states)
         net = layers.BatchNormalization()(net)
-        net = layers.Activation('relu')(net)        
-        net = layers.Dense(units=600, activation=None)(net)
-        net = layers.BatchNormalization()(net)
+        net = layers.Activation('relu')(net)
+        net = layers.Dense(units=128, activation=None)(net)
+        net = layers.BatchNormalization()(net)        
+        net = layers.Activation('relu')(net)
+        net = layers.Dense(units=128, activation=None)(net)
+        net = layers.BatchNormalization()(net)       
         net = layers.Activation('relu')(net)
 
         raw_actions = layers.Dense(units=self.action_size, activation='sigmoid', name='raw_actions')(net)

@@ -20,7 +20,8 @@ class Landing(BaseTask):
             np.array([ max_force, max_force, max_force]))
 
         self.max_duration = 5.0
-        self.target_z = 10.0
+        self.target_z = 1.0
+        self.threshold = 0.8
 
     def reset(self):
         return Pose(
@@ -34,25 +35,24 @@ class Landing(BaseTask):
     def update(self, timestamp, pose, angular_velocity, linear_acceleration):
         # debugger
         # import pdb; pdb.set_trace()
-
-        # linear_acceleration.z = abs(linear_acceleration.z) + 6
-        # angular_velocity.z += abs(linear_acceleration.z) + 6
-        # pose.position.z += abs(linear_acceleration.z) + 11
-
+      
         state = np.array([
                 pose.position.x, pose.position.y, pose.position.z,
                 pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
-        
         done = False
-        reward = -abs(pose.position.z)*4
-        if pose.position.z >= 0.0002 and pose.position.z <= 0.5 :
-            reward += 10.0
+        reward = -min(abs(pose.position.z-self.target_z),20)
+        if -self.threshold+self.target_z < pose.position.z < self.threshold+self.target_z:
+            if (self.max_duration - timestamp) <= 2.0:
+                reward += 500.0
+                done = True
+        if not -self.threshold < pose.position.x < self.threshold:
+            reward -= 10.0
             done = True
-        if pose.position.z < 0.0002:
+        if not -self.threshold < pose.position.y < self.threshold:
             reward -= 10.0
-            done = True        
+            done = True
         elif timestamp > self.max_duration:
-            reward -= 10.0
+            reward -= 200.0
             done = True
         
         action = self.agent.step(state, reward, done)
